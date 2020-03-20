@@ -1,15 +1,19 @@
-// The Vue build version to load with the `import` command
-// (runtime-only or standalone) has been set in webpack.base.conf with an alias.
-import Vue from 'vue'
-import App from './App'
-import router from './router'
+import Vue from 'vue';
+import ElementUI from 'element-ui';
+import 'element-ui/lib/theme-chalk/index.css';
+import App from './App.vue';
+import * as VueGoogleMaps from "vue2-google-maps";
+import XLSX from 'xlsx'
 
-Vue.config.productionTip = false
+Vue.use(VueGoogleMaps, {
+	load: {
+		key: "AIzaSyCnQW2XsCBpfqYd1PS4VU5Y3HMRGBe5--M"
+	}
+});
+Vue.use(ElementUI);
+Vue.use(XLSX);
 
-/* eslint-disable no-new */
-new Vue({
+var app = new Vue({
   el: '#app',
-  router,
-  components: { App },
-  template: '<App/>'
-})
+  render: h => h(App),
+});
