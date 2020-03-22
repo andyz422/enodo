@@ -15,17 +15,29 @@
       <el-button style="margin-left: 10px;" size="small" type="success" @click="submitUpload">upload to server</el-button>
     </el-upload>
 
-    <el-menu :default-openeds="[]">
+    <el-menu :default-openeds="['1','2']">
+    <el-button type="primary" size="small" @click="handleFilter"> Filter <i class="el-icon"></i> </el-button>
+    <el-button type="primary" size="small" @click="handleClear"> Clear <i class="el-icon"></i> </el-button>
+
       <el-submenu index="1">
         <template slot="title"><i class="el-icon-menu"></i>Categorical</template>
         <el-menu-item-group>
 
-          <el-dropdown>
-            <el-button type="primary" size="mini">
-              Full Address<i class="el-icon-arrow-down el-icon--right"></i>
+          <el-menu-item index="1-1"> Full Address </el-menu-item>
+          <el-dropdown @command="command => handleCommand(command, 'Full Address')">
+            <el-button type="primary" size="mini"> {{ filters['Full Address'] }} <i class="el-icon-arrow-down el-icon--right"></i>
             </el-button>
             <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item v-for="(m, index) in markers" > {{ dataset.DATA['data'][index]['CLASS_DESCRIPTION'] }} </el-dropdown-item>
+              <el-dropdown-item v-for="(m, index) in full_addr" :command="m" > {{ m }} </el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
+
+          <el-menu-item index="1-1"> Class Description </el-menu-item>
+          <el-dropdown @command="command => handleCommand(command, 'CLASS_DESCRIPTION')">
+            <el-button type="primary" size="mini"> {{ filters['CLASS_DESCRIPTION'] }} <i class="el-icon-arrow-down el-icon--right"></i>
+            </el-button>
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item v-for="(m, index) in class_desc" :command="m"> {{ m }} </el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
 
@@ -35,40 +47,39 @@
       <el-submenu index="2">
         <template slot="title"><i class="el-icon-menu"></i>Numerical</template>
         <el-menu-item-group>
-          <el-menu-item index="2-1">LATITUDE</el-menu-item>
+          <el-menu-item index="2-1"> Latitude </el-menu-item>
             <template>
-              <el-input-number v-model="num" step=0.001 size="small" @change="handleChange" :min="0" :max="300"></el-input-number>
-              <el-input-number v-model="num" step=0.001 size="small" @change="handleChange" :min="0" :max="300"></el-input-number>
+              <el-input-number v-model="filters.lat_min" :step="0.01" :precision="4" size="small" @change="handleChange" :min="0" :max="300"></el-input-number>
+              <el-input-number v-model="filters.lat_max" :step="0.01" :precision="4" size="small" @change="handleChange" :min="0" :max="300"></el-input-number>
             </template>
 
-          <el-menu-item index="2-2">LONGITUDE</el-menu-item>
+          <el-menu-item index="2-2"> Longitude </el-menu-item>
             <template>
-              <el-input-number v-model="num" step=0.001 size="small" @change="handleChange" :min="0" :max="300"></el-input-number>
-              <el-input-number v-model="num" step=0.001 size="small" @change="handleChange" :min="0" :max="300"></el-input-number>
+              <el-input-number v-model="filters.lng_min" :step="0.001" :precision="4" size="small" @change="handleChange" :min="0" :max="300"></el-input-number>
+              <el-input-number v-model="filters.lng_max" :step="0.001" :precision="4" size="small" @change="handleChange" :min="0" :max="300"></el-input-number>
             </template>
-
         </el-menu-item-group>
         </el-submenu>
-      </el-submenu>
+
+
     </el-menu>
 
   </el-aside>
   
     <GmapMap v-bind:center="center" v-bind:zoom="14" style="height: 720px; width: 2500px">
-      <gmap-marker v-bind:key="index" v-for="(m, index) in markers" v-bind:position="m.position" 
+      <gmap-marker v-bind:key="index" v-for="(m, index) in markers" v-if="m.show" v-bind:position="m.position" 
       v-bind:title="dataset.DATA['data'][index]['Full Address']" v-bind:clickable="true" v-bind:icon="genIcon(index)" >
       </gmap-marker>  
     </GmapMap>
   </el-container> 
   <h1> Test </h1>
-  <div> {{ minmax }} </div>
+  <div> {{ uploaded.u }} </div>
 </div>
 
 </template>
 
 <script>
 import Papa from 'vue-papa-parse'
-import mockserver from 'mockserver-node'
 
 export default {
 
@@ -79,22 +90,67 @@ export default {
       markers: [],
       minmax : {},
       uploaded: {'u': false},
-      class_description: new Set()
+      filters: {},
     };
   },
 
+  // Creating Sets of dropdown items 
+  computed: {
+    full_addr() {
+      if (this.uploaded.u) {
+        return [...new Set(this.dataset.DATA['data'].map(i => i['Full Address']))];
+      }
+    },
+    rec_type() {
+      if (this.uploaded.u) {
+        return [...new Set(this.dataset.DATA['data'].map(i => i['REC_TYPE']))];
+      }
+    },
+    class_desc() {
+      if (this.uploaded.u) {
+        return [...new Set(this.dataset.DATA['data'].map(i => i['CLASS_DESCRIPTION']))];
+      }
+    },
+    loc() {
+      if (this.uploaded.u) {
+        return [...new Set(this.dataset.DATA['data'].map(i => i['LOC']))];
+      }
+    },
+    dir() {
+      if (this.uploaded.u) {
+        return [...new Set(this.dataset.DATA['data'].map(i => i['DIR']))];
+      }
+    },
+    street() {
+      if (this.uploaded.u) {
+        return [...new Set(this.dataset.DATA['data'].map(i => i['STREET']))];
+      }
+    },
+    suffix() {
+      if (this.uploaded.u) {
+        return [...new Set(this.dataset.DATA['data'].map(i => i['SUFFIX']))];
+      }
+    },
+    city() {
+      if (this.uploaded.u) {
+        return [...new Set(this.dataset.DATA['data'].map(i => i['CITY']))];
+      }
+    },
+    res_type() {
+      if (this.uploaded.u) {
+        return [...new Set(this.dataset.DATA['data'].map(i => i['RES_TYPE']))];
+      }
+    }
+  },
 
-  // created() {
-  //   mockserver.start_mockserver({serverPort: 8080});
-  // },
 
   methods: {
+    // Not actually submitting to a server
     submitUpload(e) {
-      console.log(this.$refs.upload);
-      this.$refs.upload.submit();
+      this.onSuccess(this.$refs.upload.uploadFiles[0])
     },
 
-    onSuccess(response, file, fileList) {
+    onSuccess(file) {
       var reader = new FileReader();
       reader.onload = event => {
         const text = reader.result;
@@ -112,7 +168,7 @@ export default {
       const arr = this.dataset.DATA['data'];
       for (var i=0; i<arr.length; i++) {
         if (arr[i]['Latitude'] && arr[i]['Longitude'] && arr[i]['ESTIMATED_MARKET_VALUE']) {
-          var marker = {position: {}};
+          var marker = {position: {}, show: true};
           marker.position['lat'] = parseFloat(arr[i]['Latitude']);
           marker.position['lng'] = parseFloat(arr[i]['Longitude']);
           this.$set(this.markers, i, marker);
@@ -121,13 +177,12 @@ export default {
           mini = Math.min(mini, mkt_val);
           maxi = Math.max(maxi, mkt_val);
         }
-        this.$set(this.minmax, 'MIN', mini);
-        this.$set(this.minmax, 'MAX', maxi);
-        this.$set(this.center, 'lat', marker.position['lat']);
-        this.$set(this.center, 'lng', marker.position['lng']);
-        // class_description.add(arr[i]['CLASS_DESCRIPTION'])
       }
-
+      this.$set(this.minmax, 'MIN', mini);
+      this.$set(this.minmax, 'MAX', maxi);
+      this.$set(this.center, 'lat', marker.position['lat']);
+      this.$set(this.center, 'lng', marker.position['lng']);
+      
     },
 
     genIcon(index) {
@@ -138,11 +193,37 @@ export default {
       return "http://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|" + r_val.toString(16).padStart(2, '0') + g_val.toString(16).padStart(2, '0') + "00";
     },
 
+    handleCommand(command, cat) {
+      this.$set(this.filters, cat, command);
+      // console.log(command, cat);
+    },
+
     handleChange(value) {
       console.log(value);
     },
 
-  },
+    handleFilter() {
+      // for each row
+      for (var i = 0; i < this.dataset.DATA['data'].length; i++) {
+        var row = this.dataset.DATA['data'][i];
+        if (row.hasOwnProperty("Latitude") && row.hasOwnProperty("Longitude")) {
+          var bool = 'true';
+          for (var filter in this.filters) {
+            // for each valid filter
+            if (this.filters.hasOwnProperty(filter)) {          
+              bool = (bool && (this.dataset.DATA['data'][i][filter] == this.filters[filter]));
+            }
+          }
+          this.$set(this.markers[i], 'show', bool);
+        }
+      }
+    },
+
+    handleClear() {
+      this.filters = {};      
+    }
+
+  }
   
 };
 </script>
