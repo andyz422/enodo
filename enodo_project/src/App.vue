@@ -19,15 +19,19 @@
       <el-submenu index="1">
         <template slot="title"><i class="el-icon-menu"></i>Categorical</template>
         <el-menu-item-group>
-          <el-menu-item index="1-1">REC_TYPE</el-menu-item>
-          <el-menu-item index="1-2">CLASS_DESCRIPTION</el-menu-item>
-          <el-menu-item index="1-3">LOC</el-menu-item>
-          <el-menu-item index="1-4">DIR</el-menu-item>
-          <el-menu-item index="1-5">STREET</el-menu-item>
-          <el-menu-item index="1-6">SUFFIX</el-menu-item>
-          <el-menu-item index="1-3">Option 3</el-menu-item>
+
+          <el-dropdown>
+            <el-button type="primary" size="mini">
+              Full Address<i class="el-icon-arrow-down el-icon--right"></i>
+            </el-button>
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item v-for="(m, index) in markers" > {{ dataset.DATA['data'][index]['CLASS_DESCRIPTION'] }} </el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
+
         </el-menu-item-group>
       </el-submenu>
+
       <el-submenu index="2">
         <template slot="title"><i class="el-icon-menu"></i>Numerical</template>
         <el-menu-item-group>
@@ -36,16 +40,18 @@
               <el-input-number v-model="num" step=0.001 size="small" @change="handleChange" :min="0" :max="300"></el-input-number>
               <el-input-number v-model="num" step=0.001 size="small" @change="handleChange" :min="0" :max="300"></el-input-number>
             </template>
+
           <el-menu-item index="2-2">LONGITUDE</el-menu-item>
             <template>
               <el-input-number v-model="num" step=0.001 size="small" @change="handleChange" :min="0" :max="300"></el-input-number>
               <el-input-number v-model="num" step=0.001 size="small" @change="handleChange" :min="0" :max="300"></el-input-number>
             </template>
-          <el-menu-item index="2-3">Option 3</el-menu-item>
+
         </el-menu-item-group>
         </el-submenu>
       </el-submenu>
     </el-menu>
+
   </el-aside>
   
     <GmapMap v-bind:center="center" v-bind:zoom="14" style="height: 720px; width: 2500px">
@@ -69,11 +75,14 @@ export default {
   data: function() {
     return {
       dataset: {},
-      center: { lat: 41.87, lng: -87.66 },
+      center: { lat: 42, lng: -88 },
       markers: [],
-      minmax : {}
+      minmax : {},
+      uploaded: {'u': false},
+      class_description: new Set()
     };
   },
+
 
   // created() {
   //   mockserver.start_mockserver({serverPort: 8080});
@@ -91,6 +100,7 @@ export default {
         const text = reader.result;
         const data = this.$papa.parse(text, {header:true});
         this.$set(this.dataset, 'DATA', data);
+        this.$set(this.uploaded, 'u', true);
         this.createMarkers();
       }
       reader.readAsText(file.raw);
@@ -113,14 +123,18 @@ export default {
         }
         this.$set(this.minmax, 'MIN', mini);
         this.$set(this.minmax, 'MAX', maxi);
+        this.$set(this.center, 'lat', marker.position['lat']);
+        this.$set(this.center, 'lng', marker.position['lng']);
+        // class_description.add(arr[i]['CLASS_DESCRIPTION'])
       }
+
     },
 
     genIcon(index) {
       const mkt_val = parseInt(this.dataset.DATA['data'][index]['ESTIMATED_MARKET_VALUE'].replace(/,/g,""));
-      const r_val = Math.floor(255 * (mkt_val - this.minmax.MIN) / (this.minmax.MAX - this.minmax.MIN));
-      const g_val = 255 - r_val;
-      
+      const g_val = Math.floor(255 * (mkt_val - this.minmax.MIN) / (this.minmax.MAX - this.minmax.MIN));
+      const r_val = 255 - g_val;
+
       return "http://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|" + r_val.toString(16).padStart(2, '0') + g_val.toString(16).padStart(2, '0') + "00";
     },
 
