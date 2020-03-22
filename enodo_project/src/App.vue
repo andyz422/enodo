@@ -6,7 +6,7 @@
     <el-upload
       class="upload-demo"
       ref="upload"
-      action="https://jsonplaceholder.typicode.com/posts/"
+      action="https://my-json-server.typicode.com/typicode/demo/posts"
       :multiple="false"
       :limit="1"
       :auto-upload="false"
@@ -74,6 +74,7 @@ export default {
 
   methods: {
     submitUpload(e) {
+      console.log(this.$refs.upload);
       this.$refs.upload.submit();
     },
 
