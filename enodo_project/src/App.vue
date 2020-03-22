@@ -32,7 +32,7 @@
             </el-dropdown-menu>
           </el-dropdown>
 
-          <el-menu-item index="1-1"> Class Description </el-menu-item>
+          <el-menu-item index="1-2"> Class Description </el-menu-item>
           <el-dropdown @command="command => handleCommand(command, 'CLASS_DESCRIPTION')">
             <el-button type="primary" size="mini"> {{ filters['CLASS_DESCRIPTION'] }} <i class="el-icon-arrow-down el-icon--right"></i>
             </el-button>
@@ -49,14 +49,14 @@
         <el-menu-item-group>
           <el-menu-item index="2-1"> Latitude </el-menu-item>
             <template>
-              <el-input-number v-model="filters.lat_min" :step="0.01" :precision="4" size="small" @change="handleChange" :min="0" :max="300"></el-input-number>
-              <el-input-number v-model="filters.lat_max" :step="0.01" :precision="4" size="small" @change="handleChange" :min="0" :max="300"></el-input-number>
+              <el-input-number v-model="ranges.min.Latitude" :step="0.01" :precision="4" size="small" @change="handleChange"></el-input-number>
+              <el-input-number v-model="ranges.max.Latitude" :step="0.01" :precision="4" size="small" @change="handleChange"></el-input-number>
             </template>
 
           <el-menu-item index="2-2"> Longitude </el-menu-item>
             <template>
-              <el-input-number v-model="filters.lng_min" :step="0.001" :precision="4" size="small" @change="handleChange" :min="0" :max="300"></el-input-number>
-              <el-input-number v-model="filters.lng_max" :step="0.001" :precision="4" size="small" @change="handleChange" :min="0" :max="300"></el-input-number>
+              <el-input-number v-model="ranges.min.Longitude" :step="0.001" :precision="4" size="small" @change="handleChange"></el-input-number>
+              <el-input-number v-model="ranges.max.Longitude" :step="0.001" :precision="4" size="small" @change="handleChange"></el-input-number>
             </template>
         </el-menu-item-group>
         </el-submenu>
@@ -66,14 +66,12 @@
 
   </el-aside>
   
-    <GmapMap v-bind:center="center" v-bind:zoom="14" style="height: 720px; width: 2500px">
+    <GmapMap v-bind:center="center" v-bind:zoom="14" style="height: 960px; width: 2500px">
       <gmap-marker v-bind:key="index" v-for="(m, index) in markers" v-if="m.show" v-bind:position="m.position" 
       v-bind:title="dataset.DATA['data'][index]['Full Address']" v-bind:clickable="true" v-bind:icon="genIcon(index)" >
       </gmap-marker>  
     </GmapMap>
   </el-container> 
-  <h1> Test </h1>
-  <div> {{ uploaded.u }} </div>
 </div>
 
 </template>
@@ -91,6 +89,7 @@ export default {
       minmax : {},
       uploaded: {'u': false},
       filters: {},
+      ranges: { min: {}, max: {}}
     };
   },
 
@@ -199,28 +198,40 @@ export default {
     },
 
     handleChange(value) {
-      console.log(value);
+      // console.log(value);
     },
 
     handleFilter() {
       // for each row
       for (var i = 0; i < this.dataset.DATA['data'].length; i++) {
         var row = this.dataset.DATA['data'][i];
+
         if (row.hasOwnProperty("Latitude") && row.hasOwnProperty("Longitude")) {
           var bool = 'true';
+
+          // categorical filters
           for (var filter in this.filters) {
-            // for each valid filter
-            if (this.filters.hasOwnProperty(filter)) {          
-              bool = (bool && (this.dataset.DATA['data'][i][filter] == this.filters[filter]));
+            if (this.filters.hasOwnProperty(filter)) {  
+              bool = (bool && (row[filter] == this.filters[filter]));
             }
           }
+
+          // numerical filters
+          for (var key in this.ranges.min) {
+            bool = (bool && (row[key] >= this.ranges.min[key]));
+          }
+          for (var key in this.ranges.max) {
+            bool = (bool && (row[key] <= this.ranges.max[key]));
+          }
+
           this.$set(this.markers[i], 'show', bool);
         }
       }
     },
 
     handleClear() {
-      this.filters = {};      
+      this.filters = {}; 
+      this.ranges = {min: {}, max: {}};     
     }
 
   }
