@@ -1,0 +1,10 @@
+    <el-upload
+      class="upload-demo"
+      ref="upload"
+      action="https://jsonplaceholder.typicode.com/posts/"
+      :multiple="false"
+      :auto-upload="false"
+      :on-success="readFile">
+      <el-button slot="trigger" size="small" type="primary">select file</el-button>
+      <el-button style="margin-left: 10px;" size="small" type="success" @click="submitUpload">upload to server</el-button>
+    </el-upload>
