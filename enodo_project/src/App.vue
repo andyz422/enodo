@@ -6,7 +6,7 @@
     <el-upload
       class="upload-demo"
       ref="upload"
-      action="https://my-json-server.typicode.com/typicode/demo/posts"
+      action="https://jsonplaceholder.typicode.com/posts/"
       :multiple="false"
       :limit="1"
       :auto-upload="false"
@@ -49,18 +49,20 @@
   </el-aside>
   
     <GmapMap v-bind:center="center" v-bind:zoom="14" style="height: 720px; width: 2500px">
-      <gmap-marker v-bind:key="index" v-for="(m, index) in markers" v-bind:position="m.position" v-bind:title="dataset.DATA['data'][index]['Full Address']" v-bind:clickable="true">
+      <gmap-marker v-bind:key="index" v-for="(m, index) in markers" v-bind:position="m.position" 
+      v-bind:title="dataset.DATA['data'][index]['Full Address']" v-bind:clickable="true" v-bind:icon="genIcon(index)" >
       </gmap-marker>  
     </GmapMap>
   </el-container> 
   <h1> Test </h1>
-  <div> {{ center }} </div>
+  <div> {{ minmax }} </div>
 </div>
 
 </template>
 
 <script>
 import Papa from 'vue-papa-parse'
+import mockserver from 'mockserver-node'
 
 export default {
 
@@ -68,9 +70,14 @@ export default {
     return {
       dataset: {},
       center: { lat: 41.87, lng: -87.66 },
-      markers: []
+      markers: [],
+      minmax : {}
     };
   },
+
+  // created() {
+  //   mockserver.start_mockserver({serverPort: 8080});
+  // },
 
   methods: {
     submitUpload(e) {
@@ -90,13 +97,31 @@ export default {
     },
 
     createMarkers() {
+      var mini = Infinity;
+      var maxi = 0;
       const arr = this.dataset.DATA['data'];
       for (var i=0; i<arr.length; i++) {
-        var marker = {position: {}};
-        marker.position['lat'] = parseFloat(arr[i]['Latitude']);
-        marker.position['lng'] = parseFloat(arr[i]['Longitude']);
-        this.$set(this.markers, i, marker);
+        if (arr[i]['Latitude'] && arr[i]['Longitude'] && arr[i]['ESTIMATED_MARKET_VALUE']) {
+          var marker = {position: {}};
+          marker.position['lat'] = parseFloat(arr[i]['Latitude']);
+          marker.position['lng'] = parseFloat(arr[i]['Longitude']);
+          this.$set(this.markers, i, marker);
+          //update minVal, maxVal
+          var mkt_val = parseInt(arr[i]['ESTIMATED_MARKET_VALUE'].replace(/,/g,""));
+          mini = Math.min(mini, mkt_val);
+          maxi = Math.max(maxi, mkt_val);
+        }
+        this.$set(this.minmax, 'MIN', mini);
+        this.$set(this.minmax, 'MAX', maxi);
       }
+    },
+
+    genIcon(index) {
+      const mkt_val = parseInt(this.dataset.DATA['data'][index]['ESTIMATED_MARKET_VALUE'].replace(/,/g,""));
+      const r_val = Math.floor(255 * (mkt_val - this.minmax.MIN) / (this.minmax.MAX - this.minmax.MIN));
+      const g_val = 255 - r_val;
+      
+      return "http://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|" + r_val.toString(16).padStart(2, '0') + g_val.toString(16).padStart(2, '0') + "00";
     },
 
     handleChange(value) {
