@@ -24,6 +24,8 @@ For a detailed explanation on how things work, check out the [guide](http://vuej
 ## Google Maps Setup
 
 ``` bash
-The input file must be a csv. The "Enodo_Skills_Assessment_Data_File.scv" input file is contained in the ./src/assets directory. This should
-be uploaded in order for the data to be processed.
+The input file must be a csv. The "Enodo_Skills_Assessment_Data_File.scv" input file is contained in the ./src/assets directory. 
+This should be uploaded in order for the data to be processed.
+Some numeric filters are in units of 1000 when the values are larger (i.e. ESTIMATED_MARKET_VALUE).
+The "Filter" button must be clicked in order for the filter to occur. 
 ```
