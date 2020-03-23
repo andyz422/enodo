@@ -113,15 +113,6 @@
             </el-dropdown-menu>
           </el-dropdown>
 
-          <el-menu-item index="1-11"> Class Description </el-menu-item>
-          <el-dropdown @command="command => handleCommand(command, 'CLASS_DESCRIPTION')">
-            <el-button type="primary" size="mini"> {{ filters['CLASS_DESCRIPTION'] }} <i class="el-icon-arrow-down el-icon--right"></i>
-            </el-button>
-            <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item v-for="(m, index) in class_desc" :key="index" :command="m"> {{ m }} </el-dropdown-item>
-            </el-dropdown-menu>
-          </el-dropdown>
-
           <el-menu-item index="1-12"> BSMT_Desc </el-menu-item>
           <el-dropdown @command="command => handleCommand(command, 'BSMT_DESC')">
             <el-button type="primary" size="mini"> {{ filters['BSMT_DESC'] }} <i class="el-icon-arrow-down el-icon--right"></i>
@@ -647,7 +638,6 @@ export default {
 
         if (row.hasOwnProperty("Latitude") && row.hasOwnProperty("Longitude")) {
           var bool = 'true';
-
           // categorical filters
           for (var filter in this.filters) {
             if (this.filters.hasOwnProperty(filter)) {  
@@ -656,11 +646,16 @@ export default {
           }
 
           // numerical filters
-          for (var key in this.ranges.min) {
-            bool = (bool && (row[key] >= this.ranges.min[key]));
+          for (var minkey in this.ranges['min']) {
+            // console.log(minkey, this.ranges.min[minkey]);
+            if (typeof this.ranges.min[minkey] !== 'undefined') {
+              bool = (bool && (parseFloat(row[minkey]) >= parseFloat(this.ranges.min[minkey])));
+            }
           }
-          for (var key in this.ranges.max) {
-            bool = (bool && (row[key] <= this.ranges.max[key]));
+          for (var maxkey in this.ranges['max']) {
+            if (typeof this.ranges.max[maxkey] !== 'undefined') {
+              bool = (bool && (parseFloat(row[maxkey]) <= parseFloat(this.ranges.max[maxkey])));
+            }
           }
 
           this.$set(this.markers[i], 'show', bool);
