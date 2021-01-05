@@ -10,7 +10,7 @@
     "start": "npm run dev"
   },
   "dependencies": {
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "element-ui": "^2.4.5",
     "mockserver-node": "^5.9.0",
     "node-xlsx": "^0.15.0",
